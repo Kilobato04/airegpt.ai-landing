@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>AIreGPT - Tu Copiloto para la CDMX</title>
+  
+    <meta name="description" content="Alertas exactas del Hoy No Circula, contingencias y clima directo en tu chat. Evita multas de $3,267 MXN. Prueba 5 Días Gratis.">
+    <meta name="keywords" content="contingencia ambiental, hoy no circula, alertas de lluvia CDMX, clima estado de mexico, evitar multas CDMX, bot de telegram, whatsapp, AireGPT, Smability">
+    <meta name="author" content="Smability">
+  
+    <meta property="og:title" content="AIreGPT - Tu Copiloto para la CDMX" />
+    <meta property="og:description" content="Alertas exactas del Hoy No Circula, contingencias y clima directo en tu chat. Evita multas de $3,267 MXN. Prueba 5 Días Gratis." />
+    <meta property="og:image" content="https://www.smability.io/aire/images/miniatura_landingVF.png" />
+    <meta property="og:url" content="https://www.smability.io/aire/gpt.html" />
+    <meta property="og:type" content="website" />
+    <meta name="google-site-verification" content="4Da42fkPEbwWORjUY3Qxu_r81z0khGhY6Ztc9xL3-5E" />
+  
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="AIreGPT - Tu Copiloto para la CDMX" />
+    <meta name="twitter:description" content="Alertas exactas del Hoy No Circula, contingencia y clima directo en tu chat. 5 Días Gratis." />
+    <meta name="twitter:image" content="https://www.smability.io/aire/images/miniatura_landingVF.png" />
+    
+  
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "AireGPT",
+      "operatingSystem": "Telegram, WhatsApp",
+      "applicationCategory": "UtilitiesApplication",
+      "description": "Sistema de alertas tempranas impulsado por IA que notifica a conductores y ciudadanos de la Zona Metropolitana del Valle de México sobre contingencias ambientales, reglas del Hoy No Circula y precipitaciones extremas en tiempo real. Evita multas vehiculares.",
+      "offers": {
+        "@type": "Offer",
+        "price": "49.00",
+        "priceCurrency": "MXN"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Smability"
+      },
+      "areaServed": {
+        "@type": "GeoCircle",
+        "geoMidpoint": {
+          "@type": "GeoCoordinates",
+          "latitude": 19.4326,
+          "longitude": -99.1332
+        },
+        "geoRadius": "50000",
+        "description": "Zona Metropolitana del Valle de México, CDMX, Estado de México"
+      }
+    }
+    </script>
+  
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&family=Roboto+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-dark: #0a0a0c;
+      --cyan-neon: #00f2fe;
+      --purple-neon: #6f42c1;
+      --yellow-neon: #FFE600;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      font-family: 'Poppins', sans-serif;
+      color: #fff;
+      padding-bottom: 120px;
+      overflow-x: hidden;
+    }
+
+    /* ── SMOG ── */
+    .smog-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .smog { position: absolute; bottom: -60px; border-radius: 50%; background: radial-gradient(circle, rgba(111,66,193,.1) 0%, transparent 70%); animation: smogRise linear infinite; }
+    @keyframes smogRise { 0%{transform:translateY(0) scale(1);opacity:0} 10%{opacity:1} 90%{opacity:.5} 100%{transform:translateY(-110vh) scale(2.5);opacity:0} }
+
+    /* ── BANNER ── */
+    .banner-led { 
+      width: 100%; 
+      height: 45px; 
+      background-color: #000; /* El JS cambiará esto */
+      
+      /* Forzamos anclaje absoluto ignorando la UI de Telegram */
+      position: fixed !important; 
+      top: 0 !important; 
+      left: 0; 
+      right: 0;
+      margin-top: 0 !important;
+      z-index: 10000; 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.8); 
+      
+      /* Hardware acceleration para clavar el elemento y evitar "flotación" */
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+    }
+
+    .banner-led::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 1; /* Se dibuja por encima del fondo */
+      pointer-events: none; /* Deja pasar los clics */
+      background-image: linear-gradient(90deg, rgba(10,10,12,0.65) 2px, transparent 2px), linear-gradient(0deg, rgba(10,10,12,0.65) 2px, transparent 2px) !important;
+      background-size: 4px 4px !important;
+    }
+    .banner-content { 
+      position: absolute; 
+      top: 0; 
+      left: 0; 
+      height: 100%; 
+      white-space: nowrap; 
+      display: flex; 
+      align-items: center; 
+      animation: scrollBanner 35s linear infinite; 
+      will-change: transform;
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      z-index: 2; /* El texto va debajo de la mica LED */
+    }
+    .banner-text { font-family:'Roboto Mono',monospace; font-size:16px; font-weight:700; color:#ddd; letter-spacing:1px; text-transform:uppercase; padding:0 30px; }
+    .banner-text.hl { color:var(--cyan-neon); font-weight:800; }
+    .banner-text.alert { color:#ff00ff; font-weight:800; }
+    .banner-dots { color:#333; font-size:14px; margin:0 12px; animation:dotsBlink 1.5s ease-in-out infinite; }
+    @keyframes scrollBanner { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+    @keyframes dotsBlink { 0%,100%{opacity:.2} 50%{opacity:1} }
+
+    /* ── LAYOUT ── */
+    main { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; width: 100%; }
+
+    .hero-section {
+      min-height: 100vh; 
+      width: 100%;
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center;
+      /* Ajustamos el padding superior para dar aire al nuevo banner */
+      padding: calc(60px + env(safe-area-inset-top, 0px)) 16px 48px;
+    }
+
+    .content-section {
+      width: 100%; max-width: 448px;
+      padding: 32px 16px;
+      display: flex; flex-direction: column; gap: 32px;
+    }
+
+    /* ── BADGES ── */
+    .badges { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px; }
+    .viral-badge { display:inline-flex; align-items:center; gap:5px; background:rgba(0,242,254,.08); border:1px solid rgba(0,242,254,.25); border-radius:999px; padding:4px 11px; font-size:10.5px; font-weight:700; color:var(--cyan-neon); letter-spacing:.5px; text-transform:uppercase; }
+    .viral-badge.purple { background:rgba(111,66,193,.12); border-color:rgba(111,66,193,.35); color:#b88cff; }
+    .viral-badge.yellow { background:rgba(255,230,0,.08); border-color:rgba(255,230,0,.3); color:var(--yellow-neon); }
+
+    /* ── HERO TEXT ── */
+    .hero-heading { text-align:center; margin-bottom:20px; max-width:480px; }
+    .hero-heading h1 { font-size: clamp(2rem, 8vw, 3rem); font-weight:900; letter-spacing:-.02em; line-height:1.1; margin-bottom:16px; text-shadow:0 0 15px rgba(111,66,193,.5); }
+    .hero-heading p { color:#9ca3af; font-size: clamp(.9rem, 3vw, 1.1rem); }
+    .cyan { color:var(--cyan-neon); text-shadow:0 0 14px rgba(0,242,254,.8); }
+    .yellow { color:var(--yellow-neon); text-shadow:0 0 10px rgba(255,230,0,.6); }
+
+    /* ── PROOF TICKER ── */
+    .proof-ticker { width:100%; max-width:448px; background:rgba(0,242,254,.04); border:1px solid rgba(0,242,254,.1); border-radius:10px; padding:8px 12px; display:flex; align-items:center; gap:8px; overflow:hidden; margin-bottom:20px; }
+    .proof-dot { width:7px; height:7px; background:var(--cyan-neon); border-radius:50%; flex-shrink:0; animation:pulseDot 1.5s infinite; }
+    @keyframes pulseDot { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.5);opacity:.5} }
+    .proof-text { font-size:10.5px; color:#aaa; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .proof-text strong { color:var(--cyan-neon); }
+
+    /* ── COUNTERS ── */
+    .counters { display:flex; gap:32px; justify-content:center; margin-bottom:32px; }
+    .counter-item { display:flex; flex-direction:column; align-items:center; }
+    .counter-num { font-family:'Roboto Mono',monospace; font-size:26px; font-weight:900; color:var(--cyan-neon); text-shadow:0 0 10px rgba(0,242,254,.6); animation:counterFlicker 4s ease-in-out infinite; }
+    .counter-num.magenta { color:#ff00ff; text-shadow:0 0 10px rgba(255,0,255,.6); }
+    @keyframes counterFlicker { 0%,100%{opacity:1} 48%{opacity:1} 50%{opacity:.6} 52%{opacity:1} }
+    .counter-lbl { font-size:9px; color:#4b5563; letter-spacing:.08em; text-transform:uppercase; margin-top:4px; }
+    .counter-divider { width:1px; background:#222; margin:4px 0; }
+
+    /* ── PHONE ── */
+    .smartphone {
+      width: 100%; max-width: 300px; height: 560px;
+      background: linear-gradient(160deg,#1c1c1e,#2c2c2e);
+      border: 3px solid var(--cyan-neon); border-radius: 35px;
+      position: relative; z-index: 10; margin: 0 auto;
+      animation: phoneGlow 2s ease-in-out infinite, phoneSwing 5s ease-in-out infinite, neonFlicker 4.5s ease-in-out infinite;
+    }
+    @keyframes neonFlicker { 0%{opacity:1;filter:brightness(1)} 2%{opacity:.7;filter:brightness(.6)} 4%{opacity:1;filter:brightness(1.1)} 15%{opacity:.85;filter:brightness(.8)} 16%{opacity:1;filter:brightness(1.2)} 45%{opacity:1;filter:brightness(1)} 50%{opacity:.4;filter:brightness(.3)} 51%{opacity:1;filter:brightness(1.3)} 52%{opacity:.5;filter:brightness(.4)} 53%{opacity:1;filter:brightness(1.2)} 80%{opacity:.9;filter:brightness(.9)} 85%{opacity:1;filter:brightness(1.4)} 95%{opacity:.8;filter:brightness(.7)} 96%{opacity:1;filter:brightness(1.1)} 100%{opacity:1;filter:brightness(1)} }
+    @keyframes phoneGlow {
+      0%,100% { box-shadow:0 0 0 1px #3a3a3c,0 30px 80px rgba(0,0,0,.8),0 0 6px 2px var(--cyan-neon),0 0 18px 5px rgba(0,242,254,.6),0 0 45px 10px rgba(0,242,254,.35),0 0 90px 20px rgba(0,242,254,.15); }
+      50%  { box-shadow:0 0 0 1px #3a3a3c,0 30px 80px rgba(0,0,0,.8),0 0 10px 3px var(--cyan-neon),0 0 28px 8px rgba(0,242,254,.8),0 0 60px 15px rgba(0,242,254,.5),0 0 110px 28px rgba(0,242,254,.25); }
+    }
+    @keyframes phoneSwing { 0%,100%{transform:perspective(1000px) rotateY(-5deg) rotateX(2deg) translateY(0)} 25%{transform:perspective(1000px) rotateY(-8deg) rotateX(2deg) translateY(-10px)} 75%{transform:perspective(1000px) rotateY(-2deg) rotateX(2deg) translateY(10px)} }
+    @keyframes alertShake { 0%,100%{transform:perspective(1000px) rotateY(-5deg) rotateX(2deg) translateX(0)} 15%{transform:perspective(1000px) rotateY(-5deg) rotateX(2deg) translateX(-6px)} 30%{transform:perspective(1000px) rotateY(-5deg) rotateX(2deg) translateX(6px)} 45%{transform:perspective(1000px) rotateY(-5deg) rotateX(2deg) translateX(-4px)} 60%{transform:perspective(1000px) rotateY(-5deg) rotateX(2deg) translateX(4px)} }
+    .phone-shake { animation: alertShake .55s ease !important; }
+
+    .notch { position:absolute; top:0; left:50%; transform:translateX(-50%); width:140px; height:26px; background:#1c1c1e; border-radius:0 0 16px 16px; z-index:30; display:flex; align-items:center; justify-content:space-between; padding:0 12px; }
+    .notch-time { font-size:9px; font-weight:700; color:#fff; }
+    .notch-cam { width:8px; height:8px; background:#000; border-radius:50%; border:1.5px solid #333; }
+    .screen { width:100%; height:100%; border-radius:30px; overflow:hidden; display:flex; flex-direction:column; background:#17212b; }
+
+    /* ── CHAT HEADER ── */
+    .chat-header { background:linear-gradient(135deg,#1a1a3a,#4a3a8a); height:72px; display:flex; align-items:center; padding:28px 12px 0; gap:9px; flex-shrink:0; position:relative; overflow:hidden; border-bottom:1px solid rgba(111,66,193,.4); }
+    .chat-header::before { content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:linear-gradient(45deg,transparent,rgba(180,140,255,.1),transparent); animation:headerShine 3s ease-in-out infinite; }
+    @keyframes headerShine { 0%{transform:translateX(-100%) translateY(-100%) rotate(45deg)} 50%{transform:translateX(100%) translateY(100%) rotate(45deg)} 100%{transform:translateX(200%) translateY(200%) rotate(45deg)} }
+    .avatar-wrap { position:relative; flex-shrink:0; z-index:2; }
+    .h-avatar { width:34px; height:34px; background:rgba(0,0,0,.4); border:2px solid var(--cyan-neon); border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 0 8px rgba(0,242,254,.4); }
+    .h-avatar svg { width:18px; height:18px; fill:var(--cyan-neon); }
+    .notif-badge { position:absolute; top:-3px; right:-3px; width:15px; height:15px; background:var(--cyan-neon); border:2px solid #1c1c1e; border-radius:50%; font-size:8px; font-weight:800; color:#000; display:none; align-items:center; justify-content:center; z-index:5; }
+    .h-name { color:#fff; font-size:13px; font-weight:800; line-height:1; z-index:2; }
+    .h-status { color:var(--cyan-neon); font-size:9px; margin-top:1px; animation:statusBlink 1s steps(1) infinite; z-index:2; font-weight:600; }
+    @keyframes statusBlink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    /* ── CHAT AREA ── */
+    .chat-area { flex:1; overflow-y:auto; background:#17212b; display:flex; flex-direction:column; position:relative; }
+    .chat-area::-webkit-scrollbar { display:none; }
+    .msgs { flex:1; padding:10px 8px; display:flex; flex-direction:column; gap:7px; justify-content:flex-end; min-height:100%; }
+    .msg { opacity:0; transform:translateY(12px); animation:fadeIn .4s ease forwards; display:flex; flex-direction:column; }
+    .msg.bot { align-items:flex-start; }
+    .msg.user { align-items:flex-end; }
+    @keyframes fadeIn { to{opacity:1;transform:translateY(0)} }
+
+    .bubble { display:inline-block; padding:8px 11px; border-radius:13px; font-size:11px; line-height:1.5; max-width:85%; box-shadow:0 2px 8px rgba(0,0,0,.4); }
+    .msg.bot .bubble  { background:#212d3b; color:#e8e8e8; border-bottom-left-radius:3px; border:1px solid #2a3a4a; }
+    .msg.user .bubble { background:#2b5278; color:white; border-bottom-right-radius:3px; border:1px solid #3a6a99; }
+    .msg.bot .bubble strong { color:var(--cyan-neon); }
+    .msg.hl .bubble   { background:linear-gradient(135deg,#0a1a2a,#0d2a3a); border-color:rgba(0,242,254,.5); box-shadow:0 2px 12px rgba(0,242,254,.15); }
+    .msg.hl .bubble strong { color:var(--cyan-neon); }
+    .msg.cta .bubble  { background:linear-gradient(135deg,#0a1a2a,#0d2244); border:2px solid var(--cyan-neon); animation:ctaFlash .6s ease-in-out infinite; }
+    @keyframes ctaFlash { 0%,100%{border-color:var(--cyan-neon);box-shadow:0 0 16px rgba(0,242,254,.4)} 50%{border-color:#fff;box-shadow:0 0 28px rgba(0,242,254,.8)} }
+    .msg.cta .bubble strong { color:var(--cyan-neon); }
+    .handle { display:inline-block; background:var(--cyan-neon); color:#000; font-weight:800; border-radius:6px; padding:1px 7px; margin-top:3px; font-size:11px; }
+
+    .bname { font-size:8.5px; font-weight:800; margin-bottom:2px; letter-spacing:.5px; text-transform:uppercase; }
+    .bname.cyan   { color:var(--cyan-neon); }
+    .bname.gold   { color:#FFD700; }
+    .bname.orange { color:#f39c12; }
+    .bname.red    { color:#ff6060; }
+    .mtime  { font-size:8px; color:rgba(255,255,255,.25); margin-top:2px; display:block; }
+    .paloma { font-size:8px; color:rgba(42,171,238,.7); margin-top:2px; display:block; text-align:right; }
+
+    /* ── MAP BUBBLE ── */
+    .map-bubble { width:180px; background:#2b5278; border-radius:10px; border-bottom-right-radius:3px; overflow:hidden; display:inline-block; }
+    .map-label  { padding:5px 8px; display:flex; align-items:center; gap:5px; background:#1a3a52; }
+    .map-label-text { font-size:9px; font-weight:700; color:#fff; }
+    .map-label-sub  { font-size:7.5px; color:#8ab8d4; font-family:'Roboto Mono',monospace; }
+
+    /* ── CONTINGENCIA CARD ── */
+    .cont-card { display:flex; flex-direction:column; width:220px; border-radius:10px; border-bottom-left-radius:3px; overflow:hidden; border:1px solid #ff3b30; box-shadow:0 0 16px rgba(255,59,48,.35); margin-top:3px; }
+    .cont-header { background:linear-gradient(135deg,#5a0000,#a00000); padding:7px 10px; display:flex; align-items:center; gap:6px; border-bottom:1px solid rgba(255,59,48,.3); }
+    .cont-title { font-size:10px; font-weight:800; color:#fff; line-height:1.2; }
+    .cont-sub   { font-size:8px; color:rgba(255,255,255,.6); margin-top:1px; }
+    .cont-body  { background:#1e0808; padding:7px 10px; display:flex; flex-direction:column; gap:5px; }
+    .cont-row   { display:flex; justify-content:space-between; align-items:flex-start; gap:6px; }
+    .cont-lbl   { font-size:8px; color:rgba(255,120,100,.7); font-weight:600; letter-spacing:.4px; text-transform:uppercase; flex-shrink:0; }
+    .cont-val   { font-size:9px; font-weight:700; color:#ffaaaa; text-align:right; line-height:1.3; }
+    .cont-val.big { font-family:'Roboto Mono',monospace; font-size:14px; font-weight:900; color:#ff4444; text-shadow:0 0 8px rgba(255,59,48,.6); }
+    .cont-div   { height:1px; background:rgba(255,59,48,.2); margin:2px 0; }
+    .cont-block { border-radius:5px; padding:5px 7px; font-size:9px; line-height:1.45; }
+    .cont-block.health { background:#2a0808; border:1px solid rgba(255,100,80,.25); color:#ffcccc; }
+    .cont-block.health strong { color:#ff8080; display:block; margin-bottom:2px; }
+    .cont-block.hnc { background:#1a0a00; border:1px solid rgba(255,150,0,.3); color:#ffd580; }
+    .cont-block.hnc strong { color:#ffa500; display:block; margin-bottom:2px; }
+
+    /* ── AQ CARD ── */
+    .aq-card { display:flex; flex-direction:column; width:220px; border-radius:10px; border-bottom-left-radius:3px; overflow:hidden; border:1px solid var(--cyan-neon); box-shadow:0 0 12px rgba(0,242,254,.18); margin-top:3px; }
+    .aq-header { background:linear-gradient(135deg,#0a1a2a,#0d2a40); padding:7px 10px; display:flex; align-items:center; gap:6px; border-bottom:1px solid rgba(0,242,254,.15); }
+    .aq-title { font-size:10px; font-weight:800; color:var(--cyan-neon); line-height:1.2; }
+    .aq-sub   { font-size:8px; color:rgba(255,255,255,.5); margin-top:1px; }
+    .aq-body  { background:#0d1c26; padding:7px 10px; display:flex; flex-direction:column; gap:5px; }
+    .aq-row   { display:flex; justify-content:space-between; align-items:center; }
+    .aq-lbl   { font-size:8px; color:rgba(255,255,255,.4); font-weight:600; letter-spacing:.4px; text-transform:uppercase; }
+    .aq-val   { font-family:'Roboto Mono',monospace; font-size:15px; font-weight:900; color:#ff00ff; text-shadow:0 0 6px rgba(255,0,255,.5); }
+    .aq-div   { height:1px; background:rgba(0,242,254,.1); margin:2px 0; }
+    .wx-row   { display:flex; gap:4px; flex-wrap:wrap; }
+    .wx-chip  { display:flex; align-items:center; gap:2px; background:rgba(0,242,254,.07); border:1px solid rgba(0,242,254,.18); border-radius:4px; padding:2px 5px; font-size:8px; color:#9ad0e8; font-family:'Roboto Mono',monospace; }
+    .wx-chip span { color:#fff; font-weight:700; }
+    .aq-cig   { background:#1a1a08; border:1px solid rgba(255,214,0,.25); border-radius:5px; padding:5px 7px; font-size:9px; color:#ffe680; line-height:1.4; }
+    .aq-cig strong { color:#FFE600; display:block; margin-bottom:1px; }
+
+    /* ── TYPING ── */
+    .typing-wrap { display:none; align-items:center; gap:4px; padding:7px 10px; background:#212d3b; border-radius:12px; border-bottom-left-radius:3px; width:fit-content; border:1px solid #2a3a4a; }
+    .typing-wrap span { width:5px; height:5px; background:var(--cyan-neon); border-radius:50%; animation:bounce 1.2s infinite; }
+    .typing-wrap span:nth-child(2) { animation-delay:.2s; }
+    .typing-wrap span:nth-child(3) { animation-delay:.4s; }
+    @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-4px)} }
+
+    /* ── PUSH ── */
+    .push-notif { position:absolute; top:30px; z-index:50; left:6px; right:6px; background:rgba(10,20,30,.97); border-radius:12px; padding:9px 10px; z-index:50; display:flex; align-items:flex-start; gap:8px; box-shadow:0 8px 28px rgba(0,0,0,.7),0 0 0 1px rgba(0,242,254,.25); backdrop-filter:blur(12px); transform:translateY(-90px); opacity:0; transition:transform .45s cubic-bezier(.34,1.56,.64,1),opacity .35s ease; }
+    .push-notif.show { transform:translateY(0); opacity:1; }
+    .push-notif.hide { transform:translateY(-90px); opacity:0; transition:transform .35s ease,opacity .25s ease; }
+    .push-icon { width:28px; height:28px; background:linear-gradient(135deg,#0d2a40,#1a5a7a); border:1px solid var(--cyan-neon); border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow:0 0 8px rgba(0,242,254,.3); }
+    .push-icon svg { width:15px; height:15px; fill:var(--cyan-neon); }
+    .push-app   { font-size:8px; color:rgba(255,255,255,.4); font-weight:600; letter-spacing:.5px; text-transform:uppercase; margin-bottom:1px; }
+    .push-title { font-size:10px; font-weight:800; color:var(--cyan-neon); line-height:1.2; margin-bottom:1px; }
+    .push-msg   { font-size:9px; color:rgba(255,255,255,.75); line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .push-time  { font-size:8px; color:rgba(255,255,255,.3); flex-shrink:0; margin-top:1px; }
+
+    /* ── MULTA POP ── */
+    .multa-pop { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) scale(0); background:rgba(0,10,20,.96); border:2px solid var(--cyan-neon); border-radius:10px; padding:14px 20px; text-align:center; z-index:20; box-shadow:0 0 40px rgba(0,242,254,.6); animation:multaAppear .4s cubic-bezier(.68,-.55,.265,1.55) forwards; pointer-events:none; }
+    @keyframes multaAppear { to{transform:translate(-50%,-50%) scale(1)} }
+    .multa-label  { font-size:8px; color:var(--cyan-neon); font-weight:700; letter-spacing:1px; margin-bottom:5px; }
+    .multa-number { font-family:'Roboto Mono',monospace; font-size:26px; font-weight:800; color:#ff00ff; text-shadow:0 0 20px rgba(255,0,255,.8); letter-spacing:2px; }
+    .multa-sub    { font-size:7px; color:rgba(255,255,255,.5); margin-top:3px; }
+    .home-indicator { position:absolute; bottom:6px; left:50%; transform:translateX(-50%); width:100px; height:3px; background:rgba(255,255,255,.2); border-radius:2px; }
+
+    /* ══════════════ LANDING SECTIONS ══════════════ */
+
+    /* Cost card */
+    .cost-card { background:#111; border:1px solid var(--purple-neon); border-radius:16px; padding:24px; box-shadow:0 10px 40px rgba(0,0,0,.7),0 0 15px rgba(111,66,193,.3); }
+    .cost-card h2 { color:#9ca3af; text-align:center; font-size:.75rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; margin-bottom:20px; }
+    .cost-row { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px dashed #1f2937; }
+    .cost-row:last-of-type { border-bottom:none; border-top:2px solid #1f2937; padding-top:16px; margin-top:8px; }
+    .cost-label { color:#6b7280; font-family:'Roboto Mono',monospace; display:flex; align-items:center; gap:8px; font-size:.9rem; }
+    .cost-label.big { color:#fff; font-size:1.1rem; }
+    .cost-val { font-family:'Roboto Mono',monospace; font-weight:700; color:#ff00ff; text-shadow:0 0 5px rgba(255,0,255,.5); }
+    .cost-val.cyan { color:var(--cyan-neon); font-size:1.2rem; text-shadow:0 0 8px rgba(0,242,254,.6); }
+    .cost-footer { text-align:center; color:var(--purple-neon); font-weight:700; font-size:.75rem; letter-spacing:.08em; text-transform:uppercase; margin-top:16px; }
+
+    /* Steps */
+    .steps-title { text-align:center; color:#fff; font-size:1.1rem; font-weight:700; margin-bottom:24px; }
+    .steps-list  { display:flex; flex-direction:column; gap:16px; }
+    .step-row    { display:flex; align-items:center; gap:16px; background:rgba(255,255,255,.05); padding:16px; border-radius:12px; border:1px solid rgba(255,255,255,.05); }
+    .step-num    { font-family:'Roboto Mono',monospace; font-size:24px; font-weight:900; color:var(--cyan-neon); line-height:1; width:30px; flex-shrink:0; text-shadow:0 0 8px rgba(0,242,254,.5); }
+    .step-text   { color:#d1d5db; font-size:.875rem; line-height:1.5; }
+    .step-text .hi-cyan   { color:var(--cyan-neon); font-weight:700; }
+    .step-text .hi-yellow { color:var(--yellow-neon); font-weight:700; }
+
+    /* Features */
+    .features-card { background:#111; border:1px solid #374151; border-radius:16px; padding:24px; }
+    .features-title { color:#fff; font-size:1rem; font-weight:700; margin-bottom:20px; display:flex; align-items:center; gap:8px; }
+    .svg-list { list-style:none; display:flex; flex-direction:column; gap:10px; }
+    .svg-list li { display:flex; align-items:flex-start; gap:9px; font-size:.875rem; color:#d1d5db; line-height:1.5; }
+    .svg-list li svg { flex-shrink:0; margin-top:3px; }
+    .hi-cyan   { color:var(--cyan-neon); font-weight:700; }
+    .hi-purple { color:#b88cff; font-weight:700; }
+    .hi-yellow { color:var(--yellow-neon); font-weight:700; }
+
+    /* Coming soon */
+    .coming-soon-card { background:linear-gradient(135deg,#0d0d14,#111); border:1px solid rgba(111,66,193,.4); border-radius:16px; padding:18px; box-shadow:0 0 20px rgba(111,66,193,.12); }
+    .coming-soon-badge { display:inline-flex; align-items:center; gap:4px; background:rgba(111,66,193,.2); border:1px solid rgba(111,66,193,.5); border-radius:999px; padding:3px 9px; font-size:9px; font-weight:800; color:#b88cff; letter-spacing:1px; text-transform:uppercase; margin-bottom:10px; }
+    .feature-row { display:flex; align-items:flex-start; gap:9px; margin-bottom:12px; }
+    .feature-row:last-child { margin-bottom:0; }
+    .feature-icon { flex-shrink:0; width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:17px; }
+    .feature-text p:first-child { color:#fff; font-weight:700; font-size:.875rem; }
+    .feature-text p:last-child  { color:#6b7280; font-size:.75rem; margin-top:4px; line-height:1.5; }
+    .feature-text strong { color:#9ca3af; }
+
+    /* FAQ */
+    .faq-section { border-top:1px solid #1f2937; padding-top:32px; margin-bottom:40px; }
+    .faq-title  { text-align:center; color:#6b7280; font-size:1rem; font-weight:600; margin-bottom:24px; }
+    .faq-item   { background:#111; padding:16px; border-radius:12px; border:1px solid #1f2937; margin-bottom:16px; }
+    .faq-item:last-child { margin-bottom:0; }
+    .faq-q { color:var(--cyan-neon); font-weight:700; font-size:.875rem; margin-bottom:8px; }
+    .faq-a { color:#6b7280; font-size:.75rem; line-height:1.6; }
+    .faq-a strong { color:#9ca3af; }
+
+    /* Footer */
+    .site-footer { width:100%; text-align:center; padding:32px 0 40px; border-top:1px solid #1f2937; background:var(--bg-dark); position:relative; z-index:10; }
+    .social-row  { display:flex; gap:12px; align-items:center; justify-content:center; margin-bottom:20px; }
+    .social-icon { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:50%; background:#1a1a1d; border:1px solid #2a2a2a; color:#666; text-decoration:none; transition:all .2s; }
+    .social-icon:hover { color:var(--cyan-neon); border-color:var(--cyan-neon); box-shadow:0 0 8px rgba(0,242,254,.3); }
+    .social-icon svg { width:17px; height:17px; fill:currentColor; }
+    .footer-text { font-size:.75rem; color:#4b5563; line-height:1.6; }
+    .footer-text a { color:var(--cyan-neon); text-decoration:none; font-weight:600; }
+    .footer-text a:hover { text-decoration:underline; }
+
+    /* Sticky CTA */
+    .sticky-cta { position:fixed; bottom:0; left:0; width:100%; padding:16px; display:flex; flex-direction:column; align-items:center; gap:8px; z-index:50; background:linear-gradient(to top,rgba(10,10,12,1) 60%,rgba(10,10,12,0)); }
+    .btn-telegram { width:100%; max-width:448px; padding:16px; border-radius:999px; color:#fff; font-weight:800; font-size:.9rem; display:flex; justify-content:center; align-items:center; gap:8px; text-decoration:none; background:linear-gradient(135deg,#2AABEE,#1a7bbf); border:2px solid var(--cyan-neon); animation:ctaPulse 2.5s infinite; box-shadow:0 4px 20px rgba(0,0,0,.5); }
+    @keyframes ctaPulse { 0%,100%{transform:scale(1);box-shadow:0 0 15px rgba(0,242,254,.4)} 50%{transform:scale(1.02);box-shadow:0 0 25px rgba(0,242,254,.7)} }
+    .smability-link { color:#4b5563; font-size:.625rem; font-weight:600; letter-spacing:.08em; text-decoration:none; transition:color .2s; }
+    .smability-link:hover { color:var(--cyan-neon); }
+
+    /* ── MID-PAGE CTA (NUEVO) ── */
+    .mid-cta-section {
+      width: 100%;
+      max-width: 600px;
+      margin: 40px auto; 
+      padding: 0 20px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .mid-cta-box {
+      background: rgba(10, 10, 15, 0.9);
+      border: 2px solid #2AABEE; /* Borde azul Telegram */
+      border-radius: 16px;
+      padding: 30px;
+      width: 100%;
+      box-shadow: 0 0 15px rgba(42, 171, 238, 0.2), inset 0 0 10px rgba(42, 171, 238, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+    
+    .mid-cta-box:hover {
+      box-shadow: 0 0 25px rgba(42, 171, 238, 0.4), inset 0 0 15px rgba(42, 171, 238, 0.2);
+      transform: translateY(-3px);
+    }
+    
+    .mid-cta-icon {
+      width: 60px;
+      height: 60px;
+      margin-bottom: 15px;
+      color: #2AABEE; /* Azul oficial Telegram */
+      filter: drop-shadow(0 0 8px rgba(42, 171, 238, 0.6));
+    }
+    
+    .mid-cta-text {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 25px;
+      line-height: 1.4;
+    }
+  </style>
+  <script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '1447331543335469');
+  fbq('track', 'PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=1447331543335469&ev=PageView&noscript=1"
+  /></noscript>
+</head>
+<body>
+
+<div class="smog-wrap" id="smogWrap"></div>
+
+<div id="dynamic-aqi-banner" class="banner-led" style="transition: background-color 0.5s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.8);">
+  <div class="banner-content" id="banner-scroller">
+    <span class="banner-text">CONSULTANDO RED DE MONITOREO EN TIEMPO REAL...</span><span class="banner-dots">●●●</span>
+    <span class="banner-text">CONSULTANDO RED DE MONITOREO EN TIEMPO REAL...</span><span class="banner-dots">●●●</span>
+  </div>
+</div>
+
+<main>
+
+  <!-- ── HERO ── -->
+  <section class="hero-section">
+
+    <div class="badges">
+      <span class="viral-badge"><svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#00f2fe"/></svg>GPT-4 Powered</span>
+      <span class="viral-badge yellow"><svg width="8" height="8" viewBox="0 0 8 8"><polygon points="4,.5 5,3 7.5,3 5.5,4.8 6.2,7.5 4,6 1.8,7.5 2.5,4.8 .5,3 3,3" fill="#FFE600"/></svg>#1 Agente Ambiental CDMX</span>
+      <span class="viral-badge purple"><svg width="8" height="8" viewBox="0 0 8 8"><rect x=".5" y=".5" width="7" height="7" rx="1.5" fill="#b88cff"/></svg>Hoy No Circula en tiempo real</span>
+    </div>
+
+    <div class="hero-heading">
+      <h1><span class="cyan">AIreGPT</span><br>TU COPILOTO PARA<br>NAVEGAR LA <span class="yellow">CDMX</span></h1>
+      <p>Alertas exactas de Hoy No Circula, contingencia y calidad del aire directo en tu Telegram.</p>
+    </div>
+
+    <div class="proof-ticker">
+      <div class="proof-dot"></div>
+      <p class="proof-text" id="proofTicker"><strong>Juanita R.</strong> acaba de evitar una multa de $3,267 · hace 4 min</p>
+    </div>
+
+    <div class="counters">
+      <div class="counter-item">
+        <span class="counter-num" id="userCounter">1,247</span>
+        <span class="counter-lbl">usuarios activos</span>
+      </div>
+      <div class="counter-divider"></div>
+      <div class="counter-item">
+        <span class="counter-num magenta">$4,767</span>
+        <span class="counter-lbl">multas evitadas hoy</span>
+      </div>
+    </div>
+
+    <!-- PHONE -->
+    <div class="smartphone" id="phone">
+      <div class="notch"><span class="notch-time" id="notchTime"></span><div class="notch-cam"></div></div>
+      <div class="screen">
+        <div class="chat-header">
+          <div class="avatar-wrap">
+            <div class="h-avatar"><svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.19 13.98 4.23 13.07c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.836.944z"/></svg></div>
+            <div class="notif-badge" id="notifBadge"></div>
+          </div>
+          <div>
+            <div class="h-name">AIreGPT</div>
+            <div class="h-status">● EN LÍNEA </div>
+          </div>
+        </div>
+        <div class="chat-area" id="chatArea">
+          <div class="push-notif" id="pushNotif">
+            <div class="push-icon"><svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.19 13.98 4.23 13.07c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.836.944z"/></svg></div>
+            <div>
+              <div class="push-app">Telegram · AIreGPT</div>
+              <div class="push-title">🚨 CONTINGENCIA FASE I · ZMVM</div>
+              <div class="push-msg">Merced · Ozono 198 · Doble HNC activo</div>
+            </div>
+            <div class="push-time" id="pushTime"></div>
+          </div>
+          <div class="msgs" id="msgContainer">
+            <div class="typing-wrap" id="typingEl"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+  </section>
+
+  <!-- ── CONTENT ── -->
+  <div class="content-section">
+
+      <!-- Cost -->
+      <div class="cost-card">
+        <h2>EL COSTO DE LA DESINFORMACIÓN</h2>
+        <div class="cost-row">
+          <span class="cost-label"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.5" stroke="#ff4444" stroke-width="1.4" fill="none"/><line x1="4" y1="4" x2="9" y2="9" stroke="#ff4444" stroke-width="1.4"/><line x1="9" y1="4" x2="4" y2="9" stroke="#ff4444" stroke-width="1.4"/></svg>Multa HNC:</span>
+          <span class="cost-val">$3,267</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-label"><svg width="13" height="13" viewBox="0 0 13 13"><circle cx="6.5" cy="6.5" r="5.5" stroke="#ff4444" stroke-width="1.4" fill="none"/><line x1="4" y1="4" x2="9" y2="9" stroke="#ff4444" stroke-width="1.4"/><line x1="9" y1="4" x2="4" y2="9" stroke="#ff4444" stroke-width="1.4"/></svg>Corralón:</span>
+          <span class="cost-val">$1,500</span>
+        </div>
+        <div class="cost-row">
+          <span class="cost-label big"><svg width="15" height="15" viewBox="0 0 15 15"><circle cx="7.5" cy="7.5" r="6.5" stroke="#00f2fe" stroke-width="1.4" fill="none"/><polyline points="4,7.5 6.5,10 11,5" stroke="#00f2fe" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>AIreGPT:</span>
+          <span class="cost-val cyan">$49 / mes</span>
+        </div>
+        <p class="cost-footer">TUS PRIMEROS 5 DÍAS SON GRATIS (SIN TARJETA)</p>
+      </div>
+
+      <!-- Steps -->
+      <div>
+        <p class="steps-title">EN 3 PASOS ESTÁS PROTEGIDO:</p>
+        <div class="steps-list">
+          <div class="step-row"><span class="step-num">01</span><p class="step-text">Toca el botón azul. Si no tienes <span class="hi-cyan">Telegram</span>, se descarga en segundos, es gratis.</p></div>
+          <div class="step-row"><span class="step-num">02</span><p class="step-text">Presiona <strong>Iniciar</strong> y responde 4 preguntas rápidas.</p></div>
+          <div class="step-row"><span class="step-num">03</span><p class="step-text">Mándale tu <span class="hi-cyan">ubicación</span> y tu <span class="hi-yellow">número de placa</span>. Relájate.</p></div>
+        </div>
+      </div>
+      
+      <div class="mid-cta-section">
+        <div class="mid-cta-box">
+          <svg class="mid-cta-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.19 13.98 4.23 13.07c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.836.944z"/>
+          </svg>
+          
+          <p class="mid-cta-text">
+            ¿Listo para recibir estas alertas en tu celular?<br>
+            <span style="color: #2AABEE;">¡Empieza tus 5 días GRATIS ahora!</span>
+          </p>
+
+          <a href="https://t.me/airegptcdmx_bot" target="_blank" class="btn-telegram" onclick="fbq('track', 'Lead');">
+            PRUEBA 5 DÍAS GRATIS
+          </a>
+        </div>
+      </div>
+
+    <!-- Features -->
+    <div class="features-card">
+      <p class="features-title">
+        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--cyan-neon); box-shadow:0 0 8px rgba(0,242,254,0.8);"></span>
+        LO QUE RECIBES
+      </p>
+      <ul class="svg-list">
+        <li><svg width="13" height="13" viewBox="0 0 13 13"><polyline points="1.5,6.5 5,10 11.5,3" stroke="#00f2fe" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Alertas de <span class="hi-cyan">Hoy No Circula</span> personalizadas a tu placa incluyendo los <span class="hi-cyan">40 municipios</span> de la ZMVM</span></li>
+        <li><svg width="13" height="13" viewBox="0 0 13 13"><polyline points="1.5,6.5 5,10 11.5,3" stroke="#00f2fe" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Notificaciones de <span class="hi-cyan">contingencia ambiental</span> con IAS exacto de tu zona antes de salir de casa</span></li>
+        <li><svg width="13" height="13" viewBox="0 0 13 13"><polyline points="1.5,6.5 5,10 11.5,3" stroke="#00f2fe" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Calidad del aire en <span class="hi-cyan">tiempo real</span> más pronóstico de las siguientes horas en un solo mensaje</span></li>
+        <li><svg width="13" height="13" viewBox="0 0 13 13"><polyline points="1.5,6.5 5,10 11.5,3" stroke="#00f2fe" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Recordatorios de <span class="hi-cyan">Verificación</span> según tu número de placa, holograma y mes de verificación</span></li>
+        <li><svg width="13" height="13" viewBox="0 0 13 13"><polyline points="1.5,6.5 5,10 11.5,3" stroke="#b88cff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Recomendaciones de <span class="hi-purple">salud personalizadas</span> según tu padecimiento: asma, EPOC, rinitis alérgica</span></li>
+        <li><svg width="13" height="13" viewBox="0 0 13 13"><polyline points="1.5,6.5 5,10 11.5,3" stroke="#b88cff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Resumen semanal <span class="hi-purple">"Tetris de cigarros":</span> tu exposición acumulada visualizada</span></li>
+        <li><svg width="13" height="13" viewBox="0 0 13 13"><polyline points="1.5,6.5 5,10 11.5,3" stroke="#FFE600" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Resumen anual <span class="hi-yellow">"Tu Año en Cigarros":</span> el recap que nadie quiere ver pero todos necesitan</span></li>
+      </ul>
+    </div>
+
+    <!-- Coming soon -->
+    <div class="coming-soon-card">
+      <div class="coming-soon-badge"><svg width="7" height="7" viewBox="0 0 7 7"><circle cx="3.5" cy="3.5" r="3" fill="#b88cff"/></svg>Próximamente</div>
+      <p style="color:#fff;font-weight:700;font-size:.875rem;margin-bottom:16px;">MÁS PROTECCIÓN EN CAMINO</p>
+      <div class="feature-row">
+        <div class="feature-icon" style="background:rgba(60,60,180,.18);border:1px solid rgba(80,80,255,.25);">🟣</div>
+        <div class="feature-text">
+          <p>Alertas Púrpuras de Lluvia</p>
+          <p>Avisos de lluvia intensa con datos <strong>Oficiales</strong> directo en tu Telegram, antes de que el aguacero te agarre en la calle.</p>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon" style="background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.25);">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        </div>
+        <div class="feature-text">
+          <p>Versión WhatsApp</p>
+          <p>El mismo <strong>AIreGPT</strong> ahora también en <strong>WhatsApp</strong>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="faq-section">
+      <p class="faq-title">PREGUNTAS FRECUENTES</p>
+      <div class="faq-item"><p class="faq-q">¿Pide tarjeta para la prueba gratis?</p><p class="faq-a">No. Pruébalo <strong>5 días sin compromisos</strong> y sin dar datos bancarios.</p></div>
+      <div class="faq-item"><p class="faq-q">¿Funciona en mi ciudad?</p><p class="faq-a">AIreGPT cubre <strong>CDMX y toda la Zona Metropolitana</strong>, incluyendo los 40 municipios del HNC ampliado.</p></div>
+      <div class="faq-item"><p class="faq-q">¿Es difícil cancelar?</p><p class="faq-a">Para nada. Solo ve al menú <strong>"Configuración"</strong> en el chat y listo, sin llamadas ni formularios.</p></div>
+      <div class="faq-item"><p class="faq-q">¿Qué hacen con mis datos y ubicación?</p><p class="faq-a">Están blindados. Solo usamos tu ubicación, placa y otros para cruzarlos con la red de monitoreo ambiental y darte alertas y recomendaciones precisas. Nunca vendemos ni compartimos tu información con terceros. Consulta nuestro <a href="https://smability.io/es/aviso-de-privacidad/" target="_blank" style="color: var(--cyan-neon); text-decoration: none; font-weight: 700;">Aviso de Privacidad</a>.</p></div>
+    </div>
+
+  </div><!-- /content-section -->
+
+  <!-- ── FOOTER ── -->
+  <footer class="site-footer">
+    <div class="social-row">
+      <a href="https://x.com/SmabilityMX" target="_blank" class="social-icon"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+      <a href="https://www.linkedin.com/company/smability" target="_blank" class="social-icon"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+      <a href="https://www.instagram.com/airegpt.ai/" target="_blank" class="social-icon"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+      <a href="https://www.tiktok.com/@airegpt" target="_blank" class="social-icon"><svg viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z"/></svg></a>
+      
+      <a href="https://airmodelcdmx.netlify.app/" target="_blank" class="social-icon" title="Ver Mapa en Vivo">
+        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="1 6 8 2 16 6 23 2 23 18 16 22 8 18 1 22 1 6"></polygon>
+          <line x1="8" y1="2" x2="8" y2="18"></line>
+          <line x1="16" y1="6" x2="16" y2="22"></line>
+        </svg>
+      </a>
+
+      <a href="https://t.me/airegptcdmx_bot" target="_blank" class="social-icon" onclick="fbq('track', 'Lead');"><svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.19 13.98 4.23 13.07c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.836.944z"/></svg></a>
+    </div>
+    <p class="footer-text">Creado con amor ❤️ desde la CDMX para ti.<br>Desarrollado por <a href="https://www.smability.io" target="_blank">Smability.io</a> &copy; 2026</p>
+  </footer>
+
+</main>
+
+<div class="sticky-cta">
+  <a href="https://t.me/airegptcdmx_bot" target="_blank" class="btn-telegram" onclick="fbq('track', 'Lead');">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.19 13.98 4.23 13.07c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.836.944z"/></svg>
+    PROBAR 5 DÍAS GRATIS EN TELEGRAM
+  </a>
+  <a href="https://www.smability.io" target="_blank" class="smability-link">smability.io</a>
+</div>
+
+<script>
+/* ── CLOCK ── */
+(function tick(){
+  const n=new Date(),t=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+  const e=document.getElementById('notchTime');if(e)e.textContent=t;
+  const p=document.getElementById('pushTime');if(p)p.textContent=t;
+  setTimeout(tick,10000);
+})();
+
+/* ── SMOG ── */
+const sw=document.getElementById('smogWrap');
+for(let i=0;i<15;i++){
+  const d=document.createElement('div');d.className='smog';
+  const s=100+Math.random()*250;
+  d.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${15+Math.random()*20}s;animation-delay:${Math.random()*10}s`;
+  sw.appendChild(d);
+}
+
+/* ── PROOF TICKER ── */
+let baseCount=1247;
+setInterval(()=>{baseCount=Math.max(1200,baseCount+(Math.floor(Math.random()*3)-1));const e=document.getElementById('userCounter');if(e)e.textContent=baseCount.toLocaleString('es-MX');},3500);
+const proofs=['<strong>Juanita R.</strong> acaba de evitar una multa de $3,267 · hace 4 min','<strong>Horacio J.</strong> registró su placa y ya tiene protección · hace 7 min','<strong>Fernanda G.</strong> recibió alerta de contingencia Fase I · hace 11 min','<strong>Roberto S.</strong> se unió con prueba gratis · hace 14 min','<strong>Ana L.</strong> evitó el corralón esta mañana · hace 19 min'];
+let proofIdx=0;
+const proofEl=document.getElementById('proofTicker');
+if(proofEl)proofEl.style.transition='opacity .3s';
+setInterval(()=>{proofIdx=(proofIdx+1)%proofs.length;if(proofEl){proofEl.style.opacity='0';setTimeout(()=>{proofEl.innerHTML=proofs[proofIdx];proofEl.style.opacity='1';},300);}},4000);
+
+/* ── PHONE ENGINE ── */
+const phone=document.getElementById('phone');
+const msgCont=document.getElementById('msgContainer');
+const typingEl=document.getElementById('typingEl');
+const badge=document.getElementById('notifBadge');
+const chatArea=document.getElementById('chatArea');
+const pushNotif=document.getElementById('pushNotif');
+let badgeCount=0,tOff=0;
+
+function relTime(){const n=new Date();n.setMinutes(n.getMinutes()+ ++tOff);return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');}
+function wait(ms){return new Promise(r=>setTimeout(r,ms));}
+function scroll(){chatArea.scrollTop=chatArea.scrollHeight;}
+function shakePhone(){phone.classList.add('phone-shake');setTimeout(()=>phone.classList.remove('phone-shake'),600);}
+function incBadge(){badgeCount++;badge.style.display='flex';badge.textContent=badgeCount;}
+function showPush(){pushNotif.classList.remove('hide');pushNotif.classList.add('show');shakePhone();setTimeout(()=>{pushNotif.classList.remove('show');pushNotif.classList.add('hide');},3200);}
+
+function slotMulta(el){
+  const vals=['$9,999','$7,500','$5,200','$4,100','$3,267'];
+  let i=0;const iv=setInterval(()=>{el.querySelector('.multa-number').textContent=vals[i++];if(i>=vals.length)clearInterval(iv);},110);
+}
+function showMultaPop(){
+  const pop=document.createElement('div');pop.className='multa-pop';
+  pop.innerHTML='<div class="multa-label">⚠️ MULTA EVITADA HOY</div><div class="multa-number">$9,999</div><div class="multa-sub">MXN · CONTINGENCIA FASE I</div>';
+  chatArea.appendChild(pop);slotMulta(pop);
+  setTimeout(()=>{pop.style.transition='opacity .4s';pop.style.opacity='0';setTimeout(()=>pop.remove(),400);},2600);
+}
+
+/* map */
+function drawMap(cv,seed){
+  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  const rng=s=>{let x=Math.sin(s)*10000;return x-Math.floor(x);};
+  ctx.fillStyle='#1e3a50';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(42,171,238,0.1)';ctx.lineWidth=.5;
+  for(let x=0;x<=W;x+=10){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<=H;y+=10){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  ctx.strokeStyle='rgba(42,171,238,0.4)';ctx.lineWidth=1.8;
+  ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(W/2,0);ctx.lineTo(W/2,H);ctx.stroke();
+  ctx.strokeStyle='rgba(42,171,238,0.18)';ctx.lineWidth=.8;
+  [W*.25,W*.75].forEach(x=>{ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();});
+  [H*.35,H*.65].forEach(y=>{ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();});
+  const pal=['#1c2e3e','#172a22','#221c14','#1c2238','#22181a'];
+  const xs=[0,W*.25,W*.5,W*.75,W],ys=[0,H*.35,H*.5,H*.65,H];
+  for(let i=0;i<xs.length-1;i++)for(let j=0;j<ys.length-1;j++){
+    if(rng(seed+i*11+j*17)>.3){const m=2,bx=xs[i]+m,by=ys[j]+m,bw=xs[i+1]-xs[i]-m*2,bh=ys[j+1]-ys[j]-m*2;if(bw>4&&bh>4){ctx.fillStyle=pal[(i*3+j*5)%pal.length];ctx.fillRect(bx,by,bw,bh);}}
+  }
+  const px=W/2,py=H/2,g=ctx.createRadialGradient(px,py,0,px,py,20);
+  g.addColorStop(0,'rgba(42,171,238,0.4)');g.addColorStop(1,'rgba(42,171,238,0)');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(px,py,20,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.fillStyle='#2AABEE';ctx.fill();
+  ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+}
+
+/* renderers */
+function botMsg(cls,bnameCls,label,html){
+  const d=document.createElement('div');d.className='msg bot '+cls;
+  d.innerHTML=(label?`<div class="bname ${bnameCls}">${label}</div>`:'')+`<div class="bubble">${html}</div><span class="mtime">${relTime()}</span>`;
+  msgCont.insertBefore(d,typingEl);scroll();incBadge();
+}
+function userMsg(html){
+  const d=document.createElement('div');d.className='msg user';
+  d.innerHTML=`<div class="bubble">${html}</div><span class="paloma">✓✓ ${relTime()}</span>`;
+  msgCont.insertBefore(d,typingEl);scroll();
+}
+function mapMsg(title,sub,seed){
+  const wrap=document.createElement('div');wrap.className='msg user';wrap.style.alignItems='flex-end';
+  const bub=document.createElement('div');bub.className='map-bubble';
+  const cv=document.createElement('canvas');cv.width=180;cv.height=108;cv.style.cssText='width:180px;height:108px;display:block;';
+  bub.appendChild(cv);
+  const lbl=document.createElement('div');lbl.className='map-label';
+  lbl.innerHTML=`<span style="font-size:11px">📍</span><div><div class="map-label-text">${title}</div><div class="map-label-sub">${sub}</div></div>`;
+  bub.appendChild(lbl);wrap.appendChild(bub);
+  const p=document.createElement('span');p.className='paloma';p.textContent='✓✓ '+relTime();
+  wrap.appendChild(p);
+  msgCont.insertBefore(wrap,typingEl);scroll();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>drawMap(cv,seed)));
+}
+function contingenciaCard(){
+  const d=document.createElement('div');d.className='msg bot';
+  d.innerHTML=`<div class="bname red">🚨 CONTINGENCIA AMBIENTAL FASE I</div>
+    <div class="cont-card">
+      <div class="cont-header"><span style="font-size:16px">🚨</span><div><div class="cont-title">CONTINGENCIA FASE I ACTIVA</div><div class="cont-sub">ZMVM · Declarada hace 8 min</div></div></div>
+      <div class="cont-body">
+        <div class="cont-row"><span class="cont-lbl">ESTACIÓN CRÍTICA</span><span class="cont-val">Merced · Ozono</span></div>
+        <div class="cont-row"><span class="cont-lbl">IAS MERCED</span><span class="cont-val big">198</span></div>
+        <div class="cont-row"><span class="cont-lbl">NIVEL</span><span class="cont-val" style="color:#ff4444">🔴 MUY MALO</span></div>
+        <div class="cont-div"></div>
+        <div class="cont-block hnc"><strong>🚗 DOBLE HOY NO CIRCULA</strong>Hologramas 1 y 2 · Placas 5 y 6<br>❌ No circulan hasta las 22:00 hrs<br>Multa si circula: <strong>$3,267 MXN</strong></div>
+        <div class="cont-div"></div>
+        <div class="cont-block health"><strong>🫁 Recomendaciones de salud</strong>· Evita actividad física al aire libre<br>· Usa cubrebocas N95 si debes salir<br>· Cierra ventanas, usa filtro HEPA<br>· Asmáticos: ten inhalador a la mano</div>
+      </div>
+    </div>
+    <span class="mtime">${relTime()}</span>`;
+  msgCont.insertBefore(d,typingEl);scroll();incBadge();
+}
+function aqCard(){
+  const d=document.createElement('div');d.className='msg bot';
+  d.innerHTML=`<div class="bname cyan">🏠 CALIDAD DEL AIRE · CASA</div>
+    <div class="aq-card">
+      <div class="aq-header"><span style="font-size:14px">🌬️</span><div><div class="aq-title">Resumen · Col. Doctores</div><div class="aq-sub">Sensor más cercano · ahora</div></div></div>
+      <div class="aq-body">
+        <div class="aq-row"><span class="aq-lbl">IAS AHORA</span><span class="aq-val">152</span></div>
+        <div class="aq-row"><span class="aq-lbl">NIVEL</span><span style="font-size:9px;font-weight:700;color:#ff00ff">🔴 MUY MALO</span></div>
+        <div class="aq-div"></div>
+        <div class="wx-row"><div class="wx-chip">🌡️ <span>22°C</span></div><div class="wx-chip">💧 <span>61%</span></div><div class="wx-chip">💨 <span>14km/h NE</span></div></div>
+        <div class="aq-div"></div>
+        <div class="aq-cig"><strong>🚬 Exposición equivalente hoy</strong>Respirar este aire = <strong>3.1 cigarros</strong> fumados. Y es solo la mañana.</div>
+      </div>
+    </div>
+    <span class="mtime">${relTime()}</span>`;
+  msgCont.insertBefore(d,typingEl);scroll();incBadge();
+}
+function noCirculaCard(){
+  const d=document.createElement('div');d.className='msg bot';
+  d.innerHTML=`<div class="bname red">🚗 RESTRICCIÓN VEHICULAR</div>
+    <div class="cont-card">
+      <div class="cont-header"><span style="font-size:16px">🚫</span><div><div class="cont-title">TU AUTO NO CIRCULA HOY</div><div class="cont-sub">Placa term. 5 · Holograma 1</div></div></div>
+      <div class="cont-body">
+        <div class="cont-block hnc"><strong>📋 Motivo de restricción</strong>Contingencia Fase I activa. Con holograma 1 quedas en <strong>Doble HNC</strong>.</div>
+        <div class="cont-div"></div>
+        <div class="cont-row"><span class="cont-lbl">MULTA</span><span class="cont-val big">$3,267</span></div>
+        <div class="cont-row"><span class="cont-lbl">VIGENCIA</span><span class="cont-val">Hoy · hasta 22:00</span></div>
+        <div class="cont-div"></div>
+        <div class="cont-block health"><strong>🚌 Alternativas recomendadas</strong>· Metro Línea 1 (menos PM2.5 interior)<br>· Metrobús Eje Central<br>· Ecobici si el aire mejora al mediodía</div>
+      </div>
+    </div>
+    <span class="mtime">${relTime()}</span>`;
+  msgCont.insertBefore(d,typingEl);scroll();incBadge();
+}
+async function typing(ms){typingEl.style.display='flex';scroll();await wait(ms);typingEl.style.display='none';}
+
+/* ── FLOW ── */
+async function flow(){
+  msgCont.innerHTML='';msgCont.appendChild(typingEl);
+  badgeCount=0;tOff=0;badge.style.display='none';
+  await wait(700);
+
+  // 1. Contingencia card + push
+  await typing(1000);
+  shakePhone();setTimeout(showPush,400);
+  contingenciaCard();
+  await wait(3600);
+
+  // 2. User reacts
+  userMsg('¡¿Ya?! No había visto nada en las noticias 😱');
+  await wait(1600);
+
+  // 3. 8-min advantage + slot
+  await typing(1000);
+  botMsg('hl','cyan','📡 8 MINUTOS DE VENTAJA','Sensores <strong>Smability</strong> en tiempo real. Te avisé antes que <strong>Reforma, Milenio y el radio</strong>. ⚡ Alerta directo a tu <strong>Casa registrada</strong>. 🏠');
+  setTimeout(showMultaPop,900);
+  await wait(3400);
+
+  // 4. User asks about work location
+  userMsg('¿Puedo registrar también dónde trabajo? 🏢');
+  await wait(1800);
+
+  // 5. Bot explains location + user shares map
+  await typing(1000);
+  botMsg('hl','cyan','📍 COMPARTE TU UBICACIÓN','Sí. Registra <strong>Casa y Trabajo</strong> por separado — cada zona tiene sus propios sensores. Toca el clip 📎 → Ubicación y envíame dónde vives.');
+  await wait(2400);
+  mapMsg('Casa — Col. Doctores, CDMX','19.4326° N  99.1332° W',42);
+  await wait(2200);
+
+  // 6. Bot confirms + AQ card
+  await typing(1200);
+  aqCard();
+  await wait(3200);
+
+  // 7. User asks about car
+  userMsg('¿Y cómo sé si puedo sacar el coche? 🚗');
+  await wait(1800);
+
+  // 8. Bot asks for plate
+  await typing(900);
+  botMsg('','cyan','🚗 REGISTRA TU VEHÍCULO','Dime la <strong>terminación de tu placa</strong> y tu <strong>número de holograma</strong> de verificación.');
+  await wait(2200);
+
+  // 9. User answers
+  userMsg('Placa termina en 5, holograma 1');
+  await wait(1800);
+
+  // 10. No circula card
+  await typing(1300);
+  noCirculaCard();
+  await wait(5000);
+
+  setTimeout(flow,2500);
+}
+
+setTimeout(flow,800);
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", async function() {
+    const apiEndpoint = "https://y4zwdmw7vf.execute-api.us-east-1.amazonaws.com/prod/api/air-quality/current?type=reference";
+    const banner = document.getElementById('dynamic-aqi-banner');
+    const scroller = document.getElementById('banner-scroller');
+
+    // Función para obtener fecha y hora formateada (CDMX)
+    function getFormatedDateTime() {
+        const now = new Date();
+        // Formato: DD/MM HH:mm hrs (Ej: 05/04 14:30 hrs)
+        return now.toLocaleString('es-MX', {
+            day: '2-digit',
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+            timeZone: 'America/Mexico_City'
+        }).replace(',', '') + " hrs";
+    }
+
+    function calcularIAS_NOM(pm10, o3) {
+        let catO3 = 0, catPM10 = 0;
+        if(o3 <= 51) catO3 = 1; else if(o3 <= 70) catO3 = 2; else if(o3 <= 95) catO3 = 3; else if(o3 <= 135) catO3 = 4; else catO3 = 5;
+        if(pm10 <= 50) catPM10 = 1; else if(pm10 <= 75) catPM10 = 2; else if(pm10 <= 155) catPM10 = 3; else if(pm10 <= 235) catPM10 = 4; else catPM10 = 5;
+        
+        const peorCat = Math.max(catO3, catPM10);
+        
+        if(peorCat === 1) return { val: 45, text: "BUENA", bg: "#00E400", icon: "🍃" };
+        if(peorCat === 2) return { val: 85, text: "ACEPTABLE", bg: "#FFFF00", icon: "🟡" };
+        if(peorCat === 3) return { val: 125, text: "MALA", bg: "#FF7E00", icon: "⚠️" };
+        if(peorCat === 4) return { val: 175, text: "MUY MALA", bg: "#FF0000", icon: "🚨" };
+        return { val: 250, text: "EXTREMADAMENTE MALA", bg: "#8F3F97", icon: "☣️" };
+    }
+
+    function inyectarScroll(mensaje) {
+        let htmlBlock = "";
+        // Mantenemos tus estilos de alto contraste (texto blanco con borde negro)
+        const estiloTexto = "color: #FFFFFF; font-weight: 800; letter-spacing: 1px; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0px 2px 4px rgba(0,0,0,0.6);";
+        const estiloPuntos = "color: #FFFFFF; opacity: 0.9; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;";
+
+        // Agregamos la hora al inicio y final del mensaje rodante para que siempre se vea
+        const timestamp = getFormatedDateTime();
+        const mensajeConHora = `[ACTUALIZADO: ${timestamp}] ➔ ${mensaje}`;
+
+        for(let i=0; i<6; i++) {
+            htmlBlock += `<span class="banner-text" style="${estiloTexto}">${mensajeConHora}</span><span class="banner-dots" style="${estiloPuntos}">●●●</span>`;
+        }
+        
+        // Fix Safari/Móvil (Reflow Táctico)
+        scroller.style.animation = 'none';
+        scroller.innerHTML = htmlBlock;
+        scroller.offsetHeight; 
+        scroller.style.animation = null;
+    }
+
+    try {
+        const response = await fetch(apiEndpoint);
+        if (!response.ok) throw new Error('Network error');
+        const data = await response.json();
+
+        if (!data.stations || data.stations.length === 0) return;
+        const worstStation = data.stations[0];
+        const stationName = worstStation.station_name;
+
+        // 1. GATILLO DE CONTINGENCIA
+        if (worstStation.contingency) {
+            banner.style.backgroundColor = "#FF0000";
+            let restriccion = "RESTRICCIÓN VEHICULAR ACTIVA.";
+            try { restriccion = worstStation.contingency.recommendations.categories[0].items[0]; } catch(e) {}
+            
+            // Texto Contingencia con Hora
+            let mensaje = `🚨 CONTINGENCIA FASE I ACTIVADA ➔ ${restriccion} ➔ MULTA: $3,267 MXN`;
+            inyectarScroll(mensaje);
+            return; 
+        }
+
+        // 2. OPERACIÓN NORMAL
+        let pm10_val = 0, o3_val = 0;
+        try { pm10_val = worstStation.pollutants.pm10.avg_12h.value; } catch(e) {}
+        try { o3_val = worstStation.pollutants.o3.avg_1h.value; } catch(e) {}
+
+        const iasReal = calcularIAS_NOM(pm10_val, o3_val);
+
+        // Renderizado Final Normal con Hora
+        banner.style.backgroundColor = iasReal.bg;
+        let mensajeNormal = `${iasReal.icon} PEOR CALIDAD EN LA RED OFICIAL: ${stationName.toUpperCase()} ➔ CALIDAD ${iasReal.text} (IAS ESTIMADO: ${iasReal.val})`;
+        inyectarScroll(mensajeNormal);
+
+    } catch (error) {
+        console.error("API AireGPT Error:", error);
+    }
+});
+</script>
+</body>
+</html>
