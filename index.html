@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>AIreGPT - Tu Copiloto para la CDMX</title>
-  <meta name="description" content="Alertas exactas del Hoy No Circula, contingencias y clima directo en tu chat. Evita multas de $3,267 MXN. Prueba 5 Días Gratis.">
-  <meta property="og:title" content="AIreGPT - Tu Copiloto para la CDMX" />
-  <meta property="og:description" content="Alertas exactas del Hoy No Circula, contingencias y clima directo en tu chat. Evita multas de $3,267 MXN. Prueba 5 Días Gratis." />
+  <meta name="description" content="Alertas de Hoy No Circula, Contingencias, Calidad del Aire y Lluvia directo en tu Telegram. Evita multas de $3,267 MXN. Prueba 5 Días Gratis.">
+  <meta property="og:title" content="AIreGPT — Aire, Lluvia y Hoy No Circula en tu Telegram" />
+  <meta property="og:description" content="Alertas de Hoy No Circula, Contingencias, Calidad del Aire y Lluvia directo en tu Telegram. Evita multas de $3,267 MXN. Prueba 5 Días Gratis." />
   <meta property="og:image" content="https://www.smability.io/aire/images/miniatura_landingVF.png" />
-  <meta property="og:url" content="https://www.smability.io/aire/gpt.html" />
+  <meta property="og:url" content="https://airegpt.ai" />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="AIreGPT - Tu Copiloto para la CDMX" />
-  <meta name="twitter:description" content="Alertas exactas del Hoy No Circula, contingencia y clima directo en tu chat. 5 Días Gratis." />
+  <meta name="twitter:title" content="AIreGPT — Aire, Lluvia y Hoy No Circula en tu Telegram" />
+  <meta name="twitter:description" content="Alertas de HNC, Contingencias, Calidad del Aire y Lluvia. Empieza 5 días gratis, sin tarjeta." />
   <meta name="twitter:image" content="https://www.smability.io/aire/images/miniatura_landingVF.png" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&family=Roboto+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
@@ -268,8 +268,8 @@
   <section class="hero-section">
     <div class="badges">
       <span class="viral-badge"><svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#00f2fe"/></svg>Alertas de Aire y Lluvia en Tiempo Real</span>
-      <span class="viral-badge yellow"><svg width="8" height="8" viewBox="0 0 8 8"><polygon points="4,.5 5,3 7.5,3 5.5,4.8 6.2,7.5 4,6 1.8,7.5 2.5,4.8 .5,3 3,3" fill="#FFE600"/></svg>#1 Agente Ambiental CDMX</span>
       <span class="viral-badge purple"><svg width="8" height="8" viewBox="0 0 8 8"><rect x=".5" y=".5" width="7" height="7" rx="1.5" fill="#b88cff"/></svg>Hoy No Circula en tiempo real</span>
+      <span class="viral-badge yellow"><svg width="8" height="8" viewBox="0 0 8 8"><polygon points="4,.5 5,3 7.5,3 5.5,4.8 6.2,7.5 4,6 1.8,7.5 2.5,4.8 .5,3 3,3" fill="#FFE600"/></svg>#1 Agente Ambiental CDMX</span>
     </div>
     <div class="hero-heading">
       <h1><span class="cyan">AIreGPT</span><br>TU COPILOTO PARA<br>NAVEGAR LA <span class="yellow">CDMX</span></h1>
@@ -282,7 +282,7 @@
     <div class="counters">
       <div class="counter-item"><span class="counter-num" id="userCounter">1,247</span><span class="counter-lbl">usuarios activos</span></div>
       <div class="counter-divider"></div>
-      <div class="counter-item"><span class="counter-num magenta">$4,767</span><span class="counter-lbl">multas evitadas hoy</span></div>
+      <div class="counter-item"><span class="counter-num magenta" id="multasCounter">$4,767</span><span class="counter-lbl">multas evitadas hoy</span></div>
     </div>
 
     <!-- PHONE -->
@@ -433,6 +433,7 @@
    Secuencia: despejado (8s) → lluvia ligera (10s) → lluvia fuerte con ángulo (10s) → loop
    Gotas en color púrpura para contraste sobre fondo oscuro
 ══════════════════════════════════════════ */
+window._rainPhase = 'clear'; // shared flag for splash engine
 (function initRain(){
   const canvas = document.getElementById('rainCanvas');
   const ctx = canvas.getContext('2d');
@@ -479,6 +480,7 @@
     ctx.clearRect(0,0,W,H);
     const phase = currentPhase(now);
 
+    window._rainPhase = phase.name;
     if(phase.name === 'clear'){ drops = []; return; }
 
     while(drops.length < phase.count) drops.push(newDrop(phase));
@@ -502,6 +504,187 @@
     }
   }
   requestAnimationFrame(frame);
+
+  /* ── LIGHTNING ── */
+  const lightCanvas = document.createElement('canvas');
+  lightCanvas.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;';
+  document.body.appendChild(lightCanvas);
+  const lctx = lightCanvas.getContext('2d');
+
+  function resizeLight(){ lightCanvas.width=window.innerWidth; lightCanvas.height=window.innerHeight; }
+  window.addEventListener('resize',resizeLight); resizeLight();
+
+  function drawBolt(x1,y1,x2,y2,spread,depth){
+    if(depth===0){ lctx.beginPath();lctx.moveTo(x1,y1);lctx.lineTo(x2,y2);lctx.stroke();return; }
+    const mx=(x1+x2)/2+(Math.random()-.5)*spread;
+    const my=(y1+y2)/2+(Math.random()-.5)*spread*0.3;
+    drawBolt(x1,y1,mx,my,spread/2,depth-1);
+    drawBolt(mx,my,x2,y2,spread/2,depth-1);
+    if(Math.random()<0.35){ const bx2=mx+(Math.random()-.5)*spread*1.5,by2=my+spread*(0.5+Math.random()*0.5); drawBolt(mx,my,bx2,by2,spread/3,depth-2); }
+  }
+
+  let boltPoints = []; // shared bolt path for fade-out
+
+  function buildBoltPath(x1,y1,x2,y2,spread,depth,pts){
+    pts.push([x1,y1]);
+    if(depth===0){ pts.push([x2,y2]); return; }
+    const mx=(x1+x2)/2+(Math.random()-.5)*spread;
+    const my=(y1+y2)/2+(Math.random()-.5)*spread*0.25;
+    buildBoltPath(x1,y1,mx,my,spread/2,depth-1,pts);
+    buildBoltPath(mx,my,x2,y2,spread/2,depth-1,pts);
+  }
+
+  function drawStoredBolt(pts,alpha,width){
+    if(!pts.length) return;
+    lctx.save();
+    lctx.strokeStyle=`rgba(210,190,255,${alpha})`;
+    lctx.shadowColor=`rgba(160,100,255,${alpha*0.9})`;
+    lctx.shadowBlur=22;
+    lctx.lineWidth=width;
+    lctx.lineCap='round';
+    lctx.lineJoin='round';
+    lctx.beginPath();
+    lctx.moveTo(pts[0][0],pts[0][1]);
+    for(let i=1;i<pts.length;i++) lctx.lineTo(pts[i][0],pts[i][1]);
+    lctx.stroke();
+    lctx.restore();
+  }
+
+  function flashLightning(){
+    const LW=lightCanvas.width, LH=lightCanvas.height;
+    // true diagonal: top-left area → bottom-right area (or reverse)
+    const fromLeft = Math.random()<0.5;
+    const x1 = fromLeft ? LW*0.05+Math.random()*LW*0.2 : LW*0.75+Math.random()*LW*0.2;
+    const y1 = 0;
+    const x2 = fromLeft ? LW*0.5+Math.random()*LW*0.4  : LW*0.05+Math.random()*LW*0.4;
+    const y2 = LH*0.5+Math.random()*LH*0.35; // ends mid-to-lower screen, not all the way down
+    const spread = 55+Math.random()*70;
+    const pts=[];
+    buildBoltPath(x1,y1,x2,y2,spread,5,pts);
+
+    const phone=document.getElementById('phone');
+    function glowPhone(b,dur){ if(phone){ phone.style.transition=`filter ${dur}ms`; phone.style.filter=`brightness(${b})`; } }
+
+    // Frame 0: full bright flash
+    lctx.clearRect(0,0,LW,LH);
+    drawStoredBolt(pts,0.95,2.8);
+    glowPhone(2.8,'40ms');
+
+    // Frame 1 (55ms): blank → flicker
+    setTimeout(()=>{
+      lctx.clearRect(0,0,LW,LH);
+      glowPhone(1,'60ms');
+    },55);
+
+    // Frame 2 (100ms): second strike slightly dimmer
+    setTimeout(()=>{
+      drawStoredBolt(pts,0.65,1.8);
+      glowPhone(1.9,'40ms');
+    },100);
+
+    // Frame 3 (160ms): blank
+    setTimeout(()=>{
+      lctx.clearRect(0,0,LW,LH);
+      glowPhone(1,'80ms');
+    },160);
+
+    // Frame 4 (210ms): ghost trace — fade out with rAF loop
+    setTimeout(()=>{
+      let alpha=0.28;
+      function fadeOut(){
+        lctx.clearRect(0,0,LW,LH);
+        if(alpha<=0.01){ lctx.clearRect(0,0,LW,LH); return; }
+        drawStoredBolt(pts,alpha,1.0);
+        alpha-=0.035;
+        requestAnimationFrame(fadeOut);
+      }
+      fadeOut();
+      glowPhone(1,'200ms');
+    },210);
+  }
+
+  // Schedule lightning only during heavy phase
+  function scheduleLightning(){
+    const now = performance.now();
+    const t = (now - startTime) % TOTAL;
+    const heavyStart = CYCLE[0].dur + CYCLE[1].dur;
+    const heavyEnd   = heavyStart + CYCLE[2].dur;
+    if(t >= heavyStart && t < heavyEnd){ flashLightning(); }
+    const delay = 6000 + Math.random()*7000;
+    setTimeout(scheduleLightning, delay);
+  }
+  setTimeout(scheduleLightning, 14000); // primera vez en segundo ciclo heavy
+})();
+
+/* ── SPLASH ENGINE ── */
+(function initSplash(){
+  const splashCanvas = document.createElement('canvas');
+  splashCanvas.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5;';
+  document.body.appendChild(splashCanvas);
+  const sctx = splashCanvas.getContext('2d');
+  let SW,SH,splashRect=null,splashParticles=[];
+
+  function resizeSplash(){
+    SW=splashCanvas.width=window.innerWidth;
+    SH=splashCanvas.height=window.innerHeight;
+    const phone=document.getElementById('phone');
+    if(phone){ const r=phone.getBoundingClientRect(); splashRect={x:r.left,y:r.top,w:r.width,h:r.height}; }
+  }
+  window.addEventListener('resize',()=>{ setTimeout(resizeSplash,100); }); resizeSplash();
+  setInterval(resizeSplash,2000);
+
+  function spawnSplash(x,y){
+    const count=4+Math.floor(Math.random()*4);
+    for(let i=0;i<count;i++){
+      const ang=(Math.random()*Math.PI)-Math.PI; // spread upward/sideways
+      const spd=1+Math.random()*3;
+      splashParticles.push({ x,y,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd-2,alpha:0.6+Math.random()*0.3,life:1,len:3+Math.random()*5 });
+    }
+  }
+
+  let lastSplashTime=0;
+
+  function splashFrame(now){
+    requestAnimationFrame(splashFrame);
+    sctx.clearRect(0,0,SW,SH);
+    const phase=window._rainPhase||'clear';
+    if(!splashRect||phase==='clear'){ splashParticles=[]; return; }
+
+    const interval = phase==='heavy' ? 120 : 240;
+    const topDrops = phase==='heavy' ? 3 : 1;
+
+    if(now-lastSplashTime>interval){
+      lastSplashTime=now;
+      // top edge — gotas cayendo sobre la parte superior del teléfono
+      for(let i=0;i<topDrops;i++){
+        const sx=splashRect.x+8+Math.random()*(splashRect.w-16);
+        const sy=splashRect.y+Math.random()*6;
+        spawnSplash(sx,sy);
+      }
+      // lado izquierdo — lluvia con ángulo golpea el costado
+      if(phase==='heavy'&&Math.random()<0.6){
+        const sx=splashRect.x+Math.random()*6;
+        const sy=splashRect.y+30+Math.random()*splashRect.h*0.5;
+        spawnSplash(sx,sy);
+      }
+    }
+
+    // Draw and age particles
+    for(let i=splashParticles.length-1;i>=0;i--){
+      const p=splashParticles[i];
+      p.x+=p.vx; p.y+=p.vy; p.vy+=0.18; // gravity
+      p.life-=0.045; p.alpha=p.life*0.7;
+      if(p.life<=0){ splashParticles.splice(i,1); continue; }
+      sctx.beginPath();
+      sctx.strokeStyle=`rgba(180,110,255,${p.alpha})`;
+      sctx.lineWidth=0.8;
+      sctx.lineCap='round';
+      sctx.moveTo(p.x,p.y);
+      sctx.lineTo(p.x-p.vx*1.5,p.y-p.vy*1.5);
+      sctx.stroke();
+    }
+  }
+  requestAnimationFrame(splashFrame);
 })();
 
 /* ── CLOCK ── */
@@ -524,7 +707,9 @@ for(let i=0;i<15;i++){
 /* ── PROOF TICKER ── */
 let baseCount=1247;
 setInterval(()=>{baseCount=Math.max(1200,baseCount+(Math.floor(Math.random()*3)-1));const e=document.getElementById('userCounter');if(e)e.textContent=baseCount.toLocaleString('es-MX');},3500);
-const proofs=['<strong>Juanita R.</strong> acaba de evitar una multa de $3,267 · hace 4 min','<strong>Miguel R.</strong> registró su placa y ya tiene protección · hace 7 min','<strong>Fernanda G.</strong> recibió alerta de contingencia Fase I · hace 11 min','<strong>Roberto S.</strong> se unió con prueba gratis · hace 14 min','<strong>Ana L.</strong> evitó el corralón esta mañana · hace 19 min'];
+let baseMultas=4767;
+setInterval(()=>{baseMultas=Math.max(4500,baseMultas+(Math.floor(Math.random()*5)-1));const e=document.getElementById('multasCounter');if(e)e.textContent='$'+baseMultas.toLocaleString('es-MX');},4200);
+const proofs=['<strong>Juanita R.</strong> acaba de evitar una multa de $3,267 · hace 4 min','<strong>Miguel R.</strong> activó alerta de lluvia en Iztapalapa · hace 7 min','<strong>Fernanda G.</strong> recibió alerta de contingencia Fase I · hace 11 min','<strong>Roberto S.</strong> se unió con prueba gratis · hace 14 min','<strong>Ana L.</strong> evitó el corralón esta mañana · hace 19 min','<strong>Carlos M.</strong> recibió aviso de lluvia torrencial antes de salir · hace 22 min'];
 let proofIdx=0;
 const proofEl=document.getElementById('proofTicker');
 if(proofEl)proofEl.style.transition='opacity .3s';
@@ -637,6 +822,27 @@ function aqCard(){
     <span class="mtime">${relTime()}</span>`;
   addToChat(d);incBadge();
 }
+function lluviaCard(){
+  const d=document.createElement('div');d.className='msg bot';
+  d.innerHTML=`<div class="bname" style="color:#7eb8ff">🌧️ ALERTA DE LLUVIA · TRABAJO</div>
+    <div class="cont-card" style="border-color:#1a6fff;box-shadow:0 0 16px rgba(26,111,255,.3);">
+      <div class="cont-header" style="background:linear-gradient(135deg,#0a1a40,#0d2a80);">
+        <span style="font-size:16px">⛈️</span>
+        <div><div class="cont-title" style="color:#7eb8ff">LLUVIA INTENSA EN CAMINO</div><div class="cont-sub">Alcaldía Cuauhtémoc · en 10–15 min</div></div>
+      </div>
+      <div class="cont-body" style="background:#080d1e;">
+        <div class="cont-row"><span class="cont-lbl" style="color:rgba(126,184,255,.7)">INTENSIDAD</span><span class="cont-val" style="color:#7eb8ff">Torrencial (&gt;20 mm/h)</span></div>
+        <div class="cont-row"><span class="cont-lbl" style="color:rgba(126,184,255,.7)">UBICACIÓN</span><span class="cont-val" style="color:#fff">📍 Trabajo registrado</span></div>
+        <div class="cont-div" style="background:rgba(26,111,255,.2)"></div>
+        <div class="cont-block" style="background:#0a1030;border:1px solid rgba(26,111,255,.3);color:#aac8ff;font-size:9px;line-height:1.5;">
+          <strong style="color:#7eb8ff;display:block;margin-bottom:2px;">⚠️ Evita zonas de encharcamiento</strong>
+          Mantente a salvo. Lleva paraguas o espera 20 min antes de salir.
+        </div>
+      </div>
+    </div>
+    <span class="mtime">${relTime()}</span>`;
+  addToChat(d);incBadge();
+}
 function noCirculaCard(){
   const d=document.createElement('div');d.className='msg bot';
   d.innerHTML=`<div class="bname red">🚗 RESTRICCIÓN VEHICULAR</div>
@@ -666,7 +872,8 @@ async function flow(){
   userMsg('¿Puedo registrar también dónde trabajo? 🏢');await wait(1800);
   await typing(1000);botMsg('hl','cyan','📍 COMPARTE TU UBICACIÓN','Sí. Registra <strong>Casa y Trabajo</strong> por separado — cada zona tiene sus propios sensores. Toca el clip 📎 → Ubicación y envíame dónde vives.');await wait(2400);
   mapMsg('Casa — Col. Doctores, CDMX','19.4326° N  99.1332° W',42);await wait(2200);
-  await typing(1200);aqCard();await wait(3200);
+  await typing(1200);aqCard();await wait(2800);
+  await typing(900);lluviaCard();await wait(3200);
   userMsg('¿Y cómo sé si puedo sacar el coche? 🚗');await wait(1800);
   await typing(900);botMsg('','cyan','🚗 REGISTRA TU VEHÍCULO','Dime la <strong>terminación de tu placa</strong> y tu <strong>número de holograma</strong> de verificación.');await wait(2200);
   userMsg('Placa termina en 5, holograma 1');await wait(1800);
@@ -714,6 +921,7 @@ document.addEventListener("DOMContentLoaded", async function(){
     try{pm10=ws.pollutants.pm10.avg_12h.value;}catch(e){}
     try{o3=ws.pollutants.o3.avg_1h.value;}catch(e){}
     const ias=calcularIAS_NOM(pm10,o3);
+    banner.style.backgroundColor=ias.bg;
     banner.style.backgroundColor=ias.bg;
     inyectarScroll(`CALIDAD DEL AIRE EN RED OFICIAL: ${ws.station_name.toUpperCase()} ➔ ${ias.icon} ${ias.text} (IAS: ${ias.val}) ●●● LLUVIA CDMX: N/A`);
   }catch(e){console.error('API AireGPT:',e);}
