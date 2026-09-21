@@ -5,15 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>AIreGPT - Tu Copiloto para la CDMX</title>
   <meta name="description" content="Alertas de Hoy No Circula, Contingencias, Calidad del Aire y Lluvia directo en tu Telegram. Evita multas de $3,267 MXN. Prueba 5 Días Gratis.">
-  <meta property="og:title" content="AIreGPT — Aire, Lluvia y Hoy No Circula en tu Telegram" />
-  <meta property="og:description" content="Alertas de Hoy No Circula, Contingencias, Calidad del Aire y Lluvia directo en tu Telegram. Evita multas de $3,267 MXN. Prueba 5 Días Gratis." />
-  <meta property="og:image" content="https://www.smability.io/aire/images/miniatura_landingVF.png" />
-  <meta property="og:url" content="https://airegpt.ai" />
-  <meta property="og:type" content="website" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="AIreGPT — Aire, Lluvia y Hoy No Circula en tu Telegram" />
+
+  <!-- ── Favicons ── -->
+  <link rel="icon" type="image/svg+xml"            href="/assets/icons/favicon.svg">
+  <link rel="icon" type="image/png" sizes="96x96"  href="/assets/icons/favicon-96x96.png">
+  <link rel="shortcut icon"                         href="/assets/icons/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180"      href="/assets/icons/apple-touch-icon.png">
+  <link rel="manifest"                              href="/assets/icons/site.webmanifest">
+
+  <!-- ── Open Graph (WhatsApp / iMessage / Slack / Telegram) ── -->
+  <meta property="og:title"        content="AIreGPT — Aire, Lluvia y Hoy No Circula en tu Telegram" />
+  <meta property="og:description"  content="Alertas de Hoy No Circula, Contingencias, Calidad del Aire y Lluvia directo en tu Telegram. Evita multas de $3,267 MXN. Prueba 5 Días Gratis." />
+  <meta property="og:image"        content="https://airegpt.ai/assets/images/og-thumbnail.png" />
+  <meta property="og:image:width"  content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:type"   content="image/png" />
+  <meta property="og:url"          content="https://airegpt.ai" />
+  <meta property="og:type"         content="website" />
+  <meta property="og:site_name"    content="AIreGPT" />
+
+  <!-- ── Twitter / X ── -->
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:site"        content="@smability" />
+  <meta name="twitter:title"       content="AIreGPT — Aire, Lluvia y Hoy No Circula en tu Telegram" />
   <meta name="twitter:description" content="Alertas de HNC, Contingencias, Calidad del Aire y Lluvia. Empieza 5 días gratis, sin tarjeta." />
-  <meta name="twitter:image" content="https://www.smability.io/aire/images/miniatura_landingVF.png" />
+  <meta name="twitter:image"       content="https://airegpt.ai/assets/images/og-thumbnail.png" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&family=Roboto+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -884,7 +900,7 @@ setTimeout(flow,800);
 
 /* ── DYNAMIC BANNER API ── */
 document.addEventListener("DOMContentLoaded", async function(){
-  const apiEndpoint="https://y4zwdmw7vf.execute-api.us-east-1.amazonaws.com/prod/api/air-quality/current?type=reference";
+  const apiEndpoint="/api/air-quality"; /* proxied via netlify/functions/air-quality.js */
   const banner=document.getElementById('dynamic-aqi-banner');
   const scroller=document.getElementById('banner-scroller');
   function getFormatedDateTime(){const now=new Date();return now.toLocaleString('es-MX',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/Mexico_City'}).replace(',','')+' hrs';}
