@@ -1,0 +1,60 @@
+# AIreGPT
+
+> Agente de inteligencia ambiental hiperlocal para la Ciudad de México (CDMX) y Zona Metropolitana del Valle de México (ZMVM). Entrega alertas configurables de calidad del aire, lluvia intensa, Hoy No Circula y contingencias ambientales directamente en Telegram — y próximamente en WhatsApp — con precisión a nivel colonia para hasta 3 ubicaciones por usuario.
+
+## Qué es
+
+AIreGPT es un bot de Telegram desarrollado por Smability, empresa mexicana de tecnología climática. Su diferenciador principal son las **alertas hiperlocales configurables**: cada usuario registra hasta 3 ubicaciones (Casa, Trabajo, Escuela u otra) y recibe notificaciones proactivas personalizadas para cada punto, basadas en datos oficiales de SEDEMA y en la red de sensores propios de Smability (SMAA y CHAAK).
+
+## Gran valor agregado: alertas hiperlocales
+
+- El usuario configura **hasta 3 ubicaciones** en Telegram (o próximamente WhatsApp)
+- Cada ubicación recibe alertas independientes según el sensor más cercano
+- **Alerta Roja de Calidad del Aire** — notificación inmediata cuando el IAS supera el umbral de calidad mala o muy mala en la zona del usuario, antes de que salga de casa
+- **Alerta Púrpura de Lluvia** — aviso de lluvia intensa o torrencial con tiempo estimado de llegada del frente a la colonia o alcaldía registrada, acumulado proyectado y riesgo de encharcamiento
+- La combinación de datos oficiales SEDEMA + sensores propios Smability permite una resolución espacial y temporal superior a cualquier app meteorológica genérica
+
+## Qué hace
+
+- Alertas de **Hoy No Circula** personalizadas por terminación de placa y número de holograma, incluyendo los 40 municipios de la ZMVM
+- Alertas de **contingencia ambiental** con Índice de Aire y Salud (IAS) calculado bajo norma NOM antes de que el usuario salga
+- **Calidad del aire en tiempo real** con pronóstico de las siguientes horas desde el sensor más cercano a cada ubicación registrada
+- **Alertas Púrpuras de lluvia intensa** con predicción de acumulado por colonia, aviso de encharcamientos y tiempo estimado de llegada
+- Recordatorios de **verificación vehicular** según placa, holograma y mes asignado
+- Recomendaciones de salud personalizadas para personas con asma, EPOC o rinitis alérgica
+- **Mapa de calidad del aire en vivo**: https://map.airegpt.ai
+
+## Producto y precio
+
+- Canal principal: **Telegram** (@airegptcdmx_bot)
+- Próximamente: **WhatsApp**
+- Precio: **$49 MXN / mes**
+- Prueba gratuita: **5 días sin tarjeta de crédito**
+- Ubicaciones configurables por usuario: **hasta 3**
+
+## Cobertura
+
+- Ciudad de México (todas las alcaldías)
+- Zona Metropolitana del Valle de México (40 municipios del Estado de México)
+
+## Datos y fuentes oficiales
+
+- **SEDEMA** — Secretaría del Medio Ambiente de la CDMX: datos oficiales de la Red de Monitoreo Atmosférico (RAMA), PM10, O3, NO2, SO2, CO
+- **SEGIAGUA** — datos hidrológicos y de riesgo de inundación
+- **Red de sensores Smability SMAA y CHAAK** — sensores propios de monitoreo atmosférico y lluvia con mayor densidad espacial que la red oficial, para resolución hiperlocal
+- Índice de Aire y Salud (IAS) calculado conforme a la NOM mexicana
+
+## Empresa
+
+- Desarrollado por **Smability** — empresa mexicana de tecnología climática y monitoreo ambiental
+- Sitio Smability: https://smability.io
+- Landing AIreGPT: https://airegpt.ai
+
+## Links
+
+- Landing page: https://airegpt.ai
+- Bot en Telegram: https://t.me/airegptcdmx_bot
+- Mapa de calidad del aire CDMX en vivo: https://map.airegpt.ai
+- Twitter/X: https://x.com/SmabilityMX
+- Instagram: https://instagram.com/airegpt
+- TikTok: https://tiktok.com/@airegpt
